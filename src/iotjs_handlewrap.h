@@ -59,6 +59,7 @@ void iotjs_handlewrap_destroy(iotjs_handlewrap_t* handlewrap);
 void iotjs_handlewrap_close(iotjs_handlewrap_t* handlewrap,
                             OnCloseHandler on_close_cb);
 
+iotjs_handlewrap_t* iotjs_handlewrap_from_handle_unsafe(uv_handle_t* handle);
 iotjs_handlewrap_t* iotjs_handlewrap_from_handle(uv_handle_t* handle);
 iotjs_handlewrap_t* iotjs_handlewrap_from_jobject(jerry_value_t jobject);
 
@@ -66,6 +67,6 @@ uv_handle_t* iotjs_handlewrap_get_uv_handle(iotjs_handlewrap_t* handlewrap);
 jerry_value_t iotjs_handlewrap_jobject(iotjs_handlewrap_t* handlewrap);
 
 void iotjs_handlewrap_validate(iotjs_handlewrap_t* handlewrap);
-
+bool iotjs_handlewrap_validate_with_result(iotjs_handlewrap_t* handlewrap);
 
 #endif /* IOTJS_HANDLEWRAP_H */

@@ -41,11 +41,12 @@ function convertData2Array(data) {
  */
 function Bus(name) {
   EventEmitter.call(this);
-  this.name = name;
+  this.name = name || 'session';
   this.dbus = new DBus();
   this.dbus.getBus(DBUS_TYPES[this.name]);
   this.dbus.setSignalHandler(this.handleSignal.bind(this));
   this._object = null;
+  this._destroyed = false;
 }
 util.inherits(Bus, EventEmitter);
 
@@ -54,10 +55,19 @@ util.inherits(Bus, EventEmitter);
  */
 Bus.prototype.getInterface = function(serviceName,
                                       objectPath, interfaceName, callback) {
+  if (serviceName.indexOf('.') === -1)
+    return callback(new Error('service name is invalid, please use x.y.z'));
+
   var self = this;
   self.introspect(serviceName, objectPath, function(err) {
+    if (err)
+      return callback(err);
+
     var iface = self._object.interfaces[interfaceName];
     self.getUniqueServiceName(serviceName, function(err, uniqueName) {
+      if (err)
+        return callback(err);
+
       var hash = uniqueName + ':' + objectPath + ':' + interfaceName;
       self.on(hash, function(item) {
         iface.emit.apply(iface, [item.name].concat(item.args));
@@ -82,6 +92,9 @@ Bus.prototype.getInterface = function(serviceName,
 Bus.prototype.callMethod = function(serviceName, objectPath,
                                     interfaceName, member,
                                     signature, args, callback) {
+  if (this._destroyed)
+    return callback(new Error('Bus is destroyed, please recreate or reconnect it'));
+
   function cb(data) {
     callback.apply(null, [null].concat(convertData2Array(data)));
   }
@@ -146,8 +159,22 @@ Bus.prototype.addSignalFilter = function(sender, objectPath,
  * @method reconnect
  */
 Bus.prototype.reconnect = function() {
+  this.destroy();
+  this._destroyed = false;
+  var newBus = new Bus(this.name);
+  console.log('new bus destroy', this._destroyed);
+  return newBus;
+};
+
+/**
+ * @method destroy
+ */
+Bus.prototype.destroy = function() {
+  console.log('destroy state', this._destroyed);
+  if (this._destroyed)
+    return;
+  this._destroyed = true;
   this.dbus.releaseBus();
-  this.dbus.getBus(DBUS_TYPES[this.name]);
 };
 
 /**
@@ -194,7 +221,7 @@ Bus.prototype.introspect = function(serviceName, objectPath, callback) {
       interfaces: {}
     };
     if (!text)
-      throw new Error('no introspectable found');
+      return callback(new Error('no introspectable found'));
 
     var json = xml2js(text).node;
     object.path = json.attributes.name;
