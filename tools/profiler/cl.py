@@ -26,6 +26,13 @@ def merge_stack(lines, stack_time):
         time += float(stack_line[0])
         stack_time[stack_line[1]] = time
 
+def record_stack(lines, stack_time):
+    for line in lines:
+        current_line = line.strip('\n')
+        stack_line = current_line.split(',', 1)
+        time = float(stack_line[0])
+        stack_time[stack_line[1]] = time
+
 # For each call stack, subtract all call stack whose depth is just 1 smaller.
 # The resut is self time.
 def compute_self(stack_time):
@@ -76,14 +83,21 @@ def parse_tracing(lines, stack_time, debug_info_file, debug_info):
     parse_debug_info(debug_info_file, debug_info)
     stacktime_to_human(stack_time, debug_info)
 
-def parse_sampling():
+def parse_sampling(lines, stack_time, debug_info_file, debug_info):
+    record_stack(lines, stack_time)
     parse_debug_info(DEBUG_INFO_FILE, DEBUG_INFO)
     stacktime_to_human(STACK_TIME, DEBUG_INFO)
 
 PERF_FILE = open(sys.argv[1])
+LINE = PERF_FILE.readline()
 LINES = PERF_FILE.readlines()
 DEBUG_INFO_FILE = open(sys.argv[2])
 DEBUG_INFO = {}
 STACK_TIME = {}
+TYPE = sys.argv[3]
 
-parse_tracing(LINES, STACK_TIME,DEBUG_INFO_FILE,DEBUG_INFO)
+if TYPE == "js":
+    parse_tracing(LINES, STACK_TIME,DEBUG_INFO_FILE,DEBUG_INFO)
+elif TYPE == "builtin" or TYPE == "gc" or TYPE == "alloc":
+    parse_sampling(LINES, STACK_TIME,DEBUG_INFO_FILE,DEBUG_INFO)
+
