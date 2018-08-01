@@ -2816,21 +2816,6 @@ error:
 #undef READ_LITERAL
 #undef READ_LITERAL_INDEX
 
-#ifdef JERRY_CPU_PROFILER
-static void
-print_prof_stack (FILE *fp)
-{
-  for (vm_frame_ctx_t *ctx_p = JERRY_CONTEXT (vm_top_context_p);
-       ctx_p != NULL; ctx_p = ctx_p->prev_context_p)
-  {
-    jmem_cpointer_t byte_code_cp;
-    JMEM_CP_SET_NON_NULL_POINTER (byte_code_cp, ctx_p->bytecode_header_p);
-    fprintf (fp, ",%u", (uint32_t) byte_code_cp);
-  }
-  fprintf (fp, "\n");
-}
-#endif /* JERRY_CPU_PROFILER */
-
 /**
  * Execute code block.
  *
@@ -2933,10 +2918,11 @@ vm_execute (vm_frame_ctx_t *frame_ctx_p, /**< frame context */
 #ifdef JERRY_CPU_PROFILER
   double end_time = jerry_port_get_current_time ();
   FILE *fp = JERRY_CONTEXT (cpu_profiling_fp);
-  if (fp)
+  if (fp && (JERRY_CONTEXT (cpu_profiler_type) == JS_CPU_PROFILER))
   {
-    fprintf (fp, "%g", end_time - begin_time);
-    print_prof_stack (fp);
+    fprintf (fp, "%g,", end_time - begin_time);
+    jcontext_print_backtrace (fp);
+    fprintf (fp, "\n");
     if (JERRY_CONTEXT (cpu_profiling_duration) > 0 &&
         end_time > JERRY_CONTEXT (cpu_profiling_start_time) + JERRY_CONTEXT (cpu_profiling_duration))
     {
@@ -2944,7 +2930,6 @@ vm_execute (vm_frame_ctx_t *frame_ctx_p, /**< frame context */
     }
   }
 #endif /* JERRY_CPU_PROFILER */
-
 
   JERRY_CONTEXT (vm_top_context_p) = frame_ctx_p->prev_context_p;
   return completion_value;

@@ -3527,7 +3527,8 @@ jerry_enable_cpu_profiling (void)
  * return false if profiler feature disabled or profiler already started.
  */
 bool
-jerry_start_cpu_profiling (const char *path,
+jerry_start_cpu_profiling (cpu_profiler_type_t type,
+                           const char *path,
                            double duration) /**< millisecond duration, no limit if <= 0 */
 {
   jerry_assert_api_available ();
@@ -3553,6 +3554,7 @@ jerry_start_cpu_profiling (const char *path,
 
   JERRY_CONTEXT (cpu_profiling_start_time) = jerry_port_get_current_time ();
   JERRY_CONTEXT (cpu_profiling_duration) = duration;
+  JERRY_CONTEXT (cpu_profiler_type) = type;
   return true;
 #endif
 }

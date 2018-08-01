@@ -1,7 +1,7 @@
 'use strict';
 
 var profiler = require('profiler');
-profiler.startProfiling();
+profiler.startProfiling(1, 'Profile-test-profile');
 console.log('cpu profiling starts');
 
 function test() {

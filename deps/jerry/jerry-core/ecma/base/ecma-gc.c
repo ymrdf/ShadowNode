@@ -761,6 +761,10 @@ ecma_gc_run (jmem_free_unused_memory_severity_t severity) /**< gc severity */
 {
   JERRY_CONTEXT (ecma_gc_new_objects) = 0;
 
+#ifdef JERRY_CPU_PROFILER
+  double begin_time = jerry_port_get_current_time();
+#endif /* JERRY_CPU_PROFILER */
+
   ecma_object_t *white_gray_objects_p = JERRY_CONTEXT (ecma_gc_objects_p);
   ecma_object_t *black_objects_p = NULL;
 
@@ -905,6 +909,22 @@ ecma_gc_run (jmem_free_unused_memory_severity_t severity) /**< gc severity */
   /* Free RegExp bytecodes stored in cache */
   re_cache_gc_run ();
 #endif /* !CONFIG_DISABLE_REGEXP_BUILTIN */
+
+#ifdef JERRY_CPU_PROFILER
+  double end_time = jerry_port_get_current_time ();
+  FILE *fp = JERRY_CONTEXT (cpu_profiling_fp);
+  if (fp && (JERRY_CONTEXT (cpu_profiler_type) == GC_CPU_PROFILER))
+  {
+    fprintf (fp, "%g,", end_time - begin_time);
+    jcontext_print_backtrace (fp);
+    fprintf (fp, "\n");
+    if (JERRY_CONTEXT (cpu_profiling_duration) > 0 &&
+        end_time > JERRY_CONTEXT (cpu_profiling_start_time) + JERRY_CONTEXT (cpu_profiling_duration))
+    {
+      jerry_stop_cpu_profiling ();
+    }
+  }
+#endif /* JERRY_CPU_PROFILER */
 } /* ecma_gc_run */
 
 /**

@@ -76,27 +76,34 @@ function takeSnapshot() {
 }
 
 /**
- * startProfiling()
- * startProfiling(path)
- * startProfiling(duration)
- * startProfiling(path, duration)
+ * startProfiling(type)
+ * startProfiling(type, path)
+ * startProfiling(type, duration)
+ * startProfiling(type, path, duration)
+ * type:
+ * NONE_CPU_PROFILER = 0
+ * JS_CPU_PROFILER = 1
+ * BUILTIN_CPU_PROFILER = 2
+ * ALLOC_CPU_PROFILER = 3
+ * GC_CPU_PROFILER = 4
  */
 function startProfiling() {
+  var type = arguments[0];
   var path = `${process.cwd()}/Profile-${Date.now()}`;
   var duration = -1;
 
-  if (arguments.length === 1) {
-    if (typeof (arguments[0]) === 'number') {
-      duration = arguments[0];
-    } else if (typeof (arguments[0]) === 'string') {
-      path = arguments[0];
+  if (arguments.length === 2) {
+    if (typeof (arguments[1]) === 'number') {
+      duration = arguments[1];
+    } else if (typeof (arguments[1]) === 'string') {
+      path = arguments[1];
     }
-  } else if (arguments.length === 2) {
-    path = arguments[0];
-    duration = arguments[1];
+  } else if (arguments.length === 3) {
+    path = arguments[1];
+    duration = arguments[2];
   }
 
-  native.startProfiling(path, duration);
+  native.startProfiling(type, path, duration);
 }
 
 function stopProfiling() {

@@ -982,6 +982,12 @@ ecma_builtin_dispatch_call (ecma_object_t *obj_p, /**< built-in object */
   JERRY_ASSERT (ecma_get_object_type (obj_p) == ECMA_OBJECT_TYPE_FUNCTION);
   JERRY_ASSERT (ecma_get_object_is_builtin (obj_p));
 
+#ifdef JERRY_CPU_PROFILER
+  lit_magic_string_id_t name_id = LIT_MAGIC_STRING__COUNT;
+  lit_magic_string_id_t routine_name_id = LIT_MAGIC_STRING__COUNT;
+  double begin_time = jerry_port_get_current_time();
+#endif /* JERRY_CPU_PROFILER */
+
   ecma_value_t ret_value = ECMA_VALUE_EMPTY;
   ecma_extended_object_t *ext_obj_p = (ecma_extended_object_t *) obj_p;
 
@@ -992,16 +998,43 @@ ecma_builtin_dispatch_call (ecma_object_t *obj_p, /**< built-in object */
                                                this_arg_value,
                                                arguments_list_p,
                                                arguments_list_len);
+#ifdef JERRY_CPU_PROFILER
+    name_id = ecma_builtin_get_name (ext_obj_p->u.built_in.id);
+    routine_name_id = ecma_builtin_routine_get_name (ext_obj_p->u.built_in.id,
+      ext_obj_p->u.built_in.routine_id);
+#endif /* JERRY_CPU_PROFILER */
+    JERRY_ASSERT (!ecma_is_value_empty (ret_value));
   }
   else
   {
     ecma_builtin_id_t builtin_object_id = ext_obj_p->u.built_in.id;
     JERRY_ASSERT (builtin_object_id < sizeof (ecma_builtin_call_functions) / sizeof (ecma_builtin_dispatch_call_t));
-    return ecma_builtin_call_functions[builtin_object_id] (arguments_list_p, arguments_list_len);
+    ret_value = ecma_builtin_call_functions[builtin_object_id] (arguments_list_p, arguments_list_len);
+#ifdef JERRY_CPU_PROFILER
+    name_id = ecma_builtin_get_name (builtin_object_id);
+#endif /* JERRY_CPU_PROFILER */
   }
 
-  JERRY_ASSERT (!ecma_is_value_empty (ret_value));
-
+#ifdef JERRY_CPU_PROFILER
+  double end_time = jerry_port_get_current_time ();
+  FILE *fp = JERRY_CONTEXT (cpu_profiling_fp);
+  if (fp && (JERRY_CONTEXT (cpu_profiler_type) == BUILTIN_CPU_PROFILER))
+  {
+    fprintf (fp, "%g,", end_time - begin_time);
+    fprintf (fp, "%d", name_id);
+    if (routine_name_id < LIT_MAGIC_STRING__COUNT)
+    {
+      fprintf (fp, ".%d", routine_name_id);
+    }    
+    jcontext_print_backtrace (fp);
+    fprintf (fp, "\n");
+    if (JERRY_CONTEXT (cpu_profiling_duration) > 0 &&
+        end_time > JERRY_CONTEXT (cpu_profiling_start_time) + JERRY_CONTEXT (cpu_profiling_duration))
+    {
+      jerry_stop_cpu_profiling ();
+    }
+  }
+#endif /* JERRY_CPU_PROFILER */
   return ret_value;
 } /* ecma_builtin_dispatch_call */
 

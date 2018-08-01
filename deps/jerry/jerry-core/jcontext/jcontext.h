@@ -138,6 +138,7 @@ typedef struct
   FILE *cpu_profiling_fp;
   double cpu_profiling_duration;
   double cpu_profiling_start_time;
+  cpu_profiler_type_t cpu_profiler_type;
 #endif /* JERRY_CPU_PROFILER */
 } jerry_context_t;
 
@@ -295,6 +296,8 @@ extern jerry_hash_table_t jerry_global_hash_table;
 #endif /* JERRY_ENABLE_EXTERNAL_CONTEXT */
 
 void jcontext_get_backtrace_depth (uint32_t *frames, uint32_t depth);
+
+void jcontext_print_backtrace (FILE *fp);
 
 /**
  * @}

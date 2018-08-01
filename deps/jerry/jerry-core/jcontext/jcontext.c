@@ -65,6 +65,28 @@ jcontext_get_backtrace_depth (uint32_t *frames, uint32_t depth)
   }
 }
 
+void jcontext_print_backtrace (FILE *fp)
+{
+  bool is_top_frame = true;
+
+  for (vm_frame_ctx_t *ctx_p = JERRY_CONTEXT (vm_top_context_p);
+       ctx_p != NULL; ctx_p = ctx_p->prev_context_p)
+  {
+    if (is_top_frame)
+    {
+      is_top_frame = false;
+    }
+    else
+    {
+      fprintf (fp, ",");
+    }
+
+    jmem_cpointer_t byte_code_cp;
+    JMEM_CP_SET_NON_NULL_POINTER (byte_code_cp, ctx_p->bytecode_header_p);
+    fprintf (fp, "%u", (uint32_t) byte_code_cp);
+  }
+}
+
 /**
  * @}
  */
