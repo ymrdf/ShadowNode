@@ -1026,7 +1026,8 @@ ecma_builtin_dispatch_call (ecma_object_t *obj_p, /**< built-in object */
     {
       fprintf (fp, ".");
       ecma_print_string (fp, ecma_get_magic_string (routine_name_id));
-    }    
+    }
+    fprintf (fp, ",");
     jcontext_print_backtrace (fp);
     fprintf (fp, "\n");
     if (JERRY_CONTEXT (cpu_profiling_duration) > 0 &&
