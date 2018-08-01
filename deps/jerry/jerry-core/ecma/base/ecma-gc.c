@@ -916,6 +916,7 @@ ecma_gc_run (jmem_free_unused_memory_severity_t severity) /**< gc severity */
   if (fp && (JERRY_CONTEXT (cpu_profiler_type) == GC_CPU_PROFILER))
   {
     fprintf (fp, "%g,", end_time - begin_time);
+    fprintf (fp, "gc,");
     jcontext_print_backtrace (fp);
     fprintf (fp, "\n");
     if (JERRY_CONTEXT (cpu_profiling_duration) > 0 &&

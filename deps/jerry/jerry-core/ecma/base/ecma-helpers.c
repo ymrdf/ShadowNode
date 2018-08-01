@@ -1585,6 +1585,16 @@ ecma_bytecode_deref (ecma_compiled_code_t *bytecode_p) /**< byte code pointer */
                         ((size_t) bytecode_p->size) << JMEM_ALIGNMENT_LOG);
 } /* ecma_bytecode_deref */
 
+void
+ecma_print_string (FILE *fp, ecma_string_t *string_p)
+{
+  lit_utf8_size_t sz = ecma_string_get_utf8_size (string_p);
+  lit_utf8_byte_t buffer_p[sz + 1];
+  buffer_p[sz] = '\0';
+  ecma_string_to_utf8_bytes (string_p, buffer_p, sz);
+  fprintf (fp, "%s", buffer_p);
+}
+
 /**
  * @}
  * @}

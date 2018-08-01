@@ -1021,10 +1021,11 @@ ecma_builtin_dispatch_call (ecma_object_t *obj_p, /**< built-in object */
   if (fp && (JERRY_CONTEXT (cpu_profiler_type) == BUILTIN_CPU_PROFILER))
   {
     fprintf (fp, "%g,", end_time - begin_time);
-    fprintf (fp, "%d", name_id);
+    ecma_print_string (fp, ecma_get_magic_string (name_id));
     if (routine_name_id < LIT_MAGIC_STRING__COUNT)
     {
-      fprintf (fp, ".%d", routine_name_id);
+      fprintf (fp, ".");
+      ecma_print_string (fp, ecma_get_magic_string (routine_name_id));
     }    
     jcontext_print_backtrace (fp);
     fprintf (fp, "\n");

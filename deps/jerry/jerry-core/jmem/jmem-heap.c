@@ -196,6 +196,11 @@ jmem_heap_finalize (void)
 static __attr_hot___ void *
 jmem_heap_alloc_block_internal (const size_t size)
 {
+  void *result = NULL;
+#ifdef JERRY_CPU_PROFILER
+  double begin_time = jerry_port_get_current_time();
+#endif /* JERRY_CPU_PROFILER */
+
 #ifndef JERRY_SYSTEM_ALLOCATOR
   /* Align size. */
   const size_t required_size = ((size + JMEM_ALIGNMENT - 1) / JMEM_ALIGNMENT) * JMEM_ALIGNMENT;
@@ -318,11 +323,30 @@ jmem_heap_alloc_block_internal (const size_t size)
   VALGRIND_UNDEFINED_SPACE (data_space_p, size);
   JMEM_HEAP_STAT_ALLOC (size);
 
-  return (void *) data_space_p;
+  result = (void *) data_space_p;
 #else /* JERRY_SYSTEM_ALLOCATOR */
   JMEM_HEAP_STAT_ALLOC (size);
-  return malloc (size);
+  result =  malloc (size);
 #endif /* !JERRY_SYSTEM_ALLOCATOR */
+
+#ifdef JERRY_CPU_PROFILER
+  double end_time = jerry_port_get_current_time ();
+  FILE *fp = JERRY_CONTEXT (cpu_profiling_fp);
+  if (fp && (JERRY_CONTEXT (cpu_profiler_type) == ALLOC_CPU_PROFILER))
+  {
+    fprintf (fp, "%g,", end_time - begin_time);
+    fprintf (fp, "alloc,");
+    jcontext_print_backtrace (fp);
+    fprintf (fp, "\n");
+    if (JERRY_CONTEXT (cpu_profiling_duration) > 0 &&
+        end_time > JERRY_CONTEXT (cpu_profiling_start_time) + JERRY_CONTEXT (cpu_profiling_duration))
+    {
+      jerry_stop_cpu_profiling ();
+    }
+  }
+#endif /* JERRY_CPU_PROFILER */
+
+  return result;
 } /* jmem_heap_alloc_block_internal */
 
 /**

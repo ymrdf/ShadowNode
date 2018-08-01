@@ -377,6 +377,8 @@ lit_utf8_size_t ecma_number_to_utf8_string (ecma_number_t num, lit_utf8_byte_t *
 /* ecma-helpers-errol.c */
 lit_utf8_size_t ecma_errol0_dtoa (double val, lit_utf8_byte_t *buffer_p, int32_t *exp_p);
 
+void ecma_print_string (FILE *fp, ecma_string_t *string_p);
+
 /**
  * @}
  * @}
