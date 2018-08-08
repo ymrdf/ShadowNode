@@ -70,21 +70,26 @@ done
 # Prepend a git hash to N-API headers
 for file in node_api.h node_api_types.h; do
   command $sed_command -i \
-    "1s/^/\/\/ Pulled from nodejs\/node#$tag_sha $tag using tools\/pull-napi.sh\n\n/" \
+    "1s/^/\
+\/\/ Pulled from nodejs\/node#$tag_sha $tag using tools\/pull-napi.sh\n\n/" \
     "include/$file"
 done
 
 # Add a description to N-API tests
-echo "Pulled from nodejs/node#$tag_sha $tag using tools/pull-napi.sh" > test/addons-napi/README.md
+echo "Pulled from nodejs/node#$tag_sha $tag using tools/pull-napi.sh" \
+  > test/addons-napi/README.md
 
 # Alter N-API tests removing Node specific functions
 for file in test/addons-napi/**/*.js; do
   [ -f "$file" ] && echo "$file"
 
   declare -a exps=(
-    "s/const common = require.'\.\.\/\.\.\/common'.;//" # `const common = require('../../common');` => ``
-    "s/const/var/" # `const` => `var`
-    "s/\$.common\.buildType./Release/" # `${common.buildType}` => `Release`
+    # `const common = require('../../common');` => ``
+    "s/const common = require.'\.\.\/\.\.\/common'.;//"
+    # `const` => `var`
+    "s/const/var/"
+    # `${common.buildType}` => `Release`
+    "s/\$.common\.buildType./Release/"
   )
   for exp in "${exps[@]}"; do
     command $sed_command -i "$exp" "$file"

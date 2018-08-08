@@ -442,8 +442,9 @@ def build_napi_test_module(options):
 
 def build_addons_napi_gyp_modules():
     dirs = glob.glob('test/addons-napi/*')
-    dirs = [ dir_name for dir_name in dirs if os.path.isdir(dir_name) ]
-    dirs = [ dir_name for dir_name in dirs if os.path.isfile(os.path.join(dir_name, 'binding.gyp')) ]
+    dirs = [dir_name for dir_name in dirs if os.path.isdir(dir_name)]
+    dirs = [dir_name for dir_name in dirs if os.path.isfile(
+        os.path.join(dir_name, 'binding.gyp'))]
     for dir_name in dirs:
         ex.check_run_cmd('node-gyp', ['configure'], cwd=dir_name)
         ex.check_run_cmd('node-gyp', ['build'], cwd=dir_name)
